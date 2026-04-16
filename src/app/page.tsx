@@ -8,15 +8,12 @@ import SearchingOverlay from "@/components/SearchingOverlay";
 import GameHeader from "@/components/GameHeader";
 import Board from "@/components/Board";
 import ResultModal from "@/components/ResultModal";
+import RoomLobby from "@/components/RoomLobby";
 import styles from "./page.module.css";
 import { useEffect } from "react";
 
 export default function Home() {
-  const { state, play, cancelSearch, makeMove, reset } = useGame();
-
-  useEffect(()=>{
-    console.log('state',state)
-  },[state])
+  const { state, play, cancelSearch, makeMove, reset, goToRoom, createRoom, joinRoom, isRoomLoading } = useGame();
 
   return (
     <main className={styles.main}>
@@ -53,7 +50,37 @@ export default function Home() {
               </p>
             </motion.div>
 
-            <PlayButton onClick={play} />
+            <motion.div
+              className={styles.modeButtons}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.25 }}
+            >
+              <PlayButton onClick={play} />
+
+              <motion.button
+                id="private-room-btn"
+                className={styles.roomBtn}
+                onClick={goToRoom}
+                whileHover={{ scale: 1.03, y: -1 }}
+                whileTap={{ scale: 0.97 }}
+              >
+                <span className={styles.roomBtnIcon}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                    <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.8"/>
+                    <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+                <span>
+                  <span className={styles.roomBtnLabel}>Play with Friend</span>
+                  <span className={styles.roomBtnSub}>Create or join a private room</span>
+                </span>
+                <svg className={styles.roomBtnArrow} width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </motion.button>
+            </motion.div>
 
             <motion.div
               className={styles.features}
@@ -137,6 +164,20 @@ export default function Home() {
             playerMark={state.playerMark}
             onPlayAgain={play}
             onHome={reset}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Room Lobby (create / join) ─── */}
+      <AnimatePresence>
+        {state.screen === "room" && (
+          <RoomLobby
+            onBack={reset}
+            onCreateRoom={createRoom}
+            onJoinRoom={joinRoom}
+            roomCode={state.roomCode}
+            isLoading={isRoomLoading}
+            roomError={state.error}
           />
         )}
       </AnimatePresence>

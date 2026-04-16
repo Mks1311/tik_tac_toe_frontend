@@ -21,9 +21,9 @@ export const OpCode = {
 
 const client = new Client(
   process.env.NEXT_PUBLIC_NAKAMA_KEY || "defaultkey",
-  process.env.NEXT_PUBLIC_NAKAMA_HOST || "tic-tac-toe-nakama-backend.onrender.com",
-  process.env.NEXT_PUBLIC_NAKAMA_PORT || "",
-  true,
+  process.env.NEXT_PUBLIC_NAKAMA_HOST || "localhost" || "tic-tac-toe-nakama-backend.onrender.com",
+  process.env.NEXT_PUBLIC_NAKAMA_PORT || "7350" || "",
+  false,
 );
 
 let session: Session | null = null;
@@ -38,7 +38,6 @@ function getDeviceId(): string {
     id = crypto.randomUUID();
     localStorage.setItem(key, id);
   }
-  console.log('id',id," key ",key)
   return id;
 }
 
@@ -53,7 +52,7 @@ export async function authenticate(): Promise<Session> {
 export async function connectSocket(): Promise<Socket> {
   if (socket) return socket;
   const sess = await authenticate();
-  socket = client.createSocket(true, false);
+  socket = client.createSocket(false, false);
   await socket.connect(sess, false);
   return socket;
 }
@@ -91,11 +90,37 @@ export async function joinMatchByToken(token: string) {
 }
 
 export async function sendMove(matchId: string, position: number) {
-  console.log('JSON.stringify({ position })',JSON.stringify({ position }))
   if (!socket) return;
   await socket.sendMatchState(matchId, OpCode.MOVE, JSON.stringify({ position }));
 }
 
 export async function leaveMatch(matchId: string) {
   if (socket) await socket.leaveMatch(matchId);
+}
+
+// ── Private Rooms ─────────────────────────────────────────────────────────────
+
+/**
+ * Create a private authoritative match via RPC.
+ * Returns the match ID and the short room code the creator should share.
+ */
+export async function createPrivateRoom(): Promise<{ matchId: string; roomCode: string }> {
+  const sess = await authenticate();
+  const result = await client.rpc(sess, "rpc_create_match", {});
+  const { matchId, roomCode } = result.payload as { matchId: string; roomCode: string };
+  return { matchId, roomCode };
+}
+
+/**
+ * Resolve a 6-char room code to a match ID via RPC, then join the match.
+ * Returns the full matchId.
+ */
+export async function joinPrivateRoom(code: string): Promise<string> {
+  const sess = await authenticate();
+  const result = await client.rpc(sess, "rpc_join_private_room", { code: code.toUpperCase() });
+  const { matchId } = result.payload as { matchId: string };
+  // Join on the socket so match state events start flowing
+  const s = await connectSocket();
+  await s.joinMatch(matchId);
+  return matchId;
 }

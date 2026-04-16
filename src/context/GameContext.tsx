@@ -5,7 +5,7 @@ import * as nakama from "@/lib/nakama";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-export type Screen = "home" | "searching" | "game" | "result";
+export type Screen = "home" | "room" | "searching" | "game" | "result";
 
 // Win-line check (used by Board component for highlighting)
 const WIN_LINES = [
@@ -35,6 +35,7 @@ export interface AppState {
   gameOver: boolean;
   ticket: string | null;
   error: string | null;
+  roomCode: string | null;
 }
 
 interface GameContextValue {
@@ -43,6 +44,11 @@ interface GameContextValue {
   cancelSearch: () => Promise<void>;
   makeMove: (position: number) => Promise<void>;
   reset: () => void;
+  // Room mode
+  goToRoom: () => void;
+  createRoom: () => Promise<void>;
+  joinRoom: (roomCode: string) => Promise<void>;
+  isRoomLoading: boolean;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -60,6 +66,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [gameOver, setGameOver] = useState(false);
   const [ticket, setTicket] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [roomCode, setRoomCode] = useState<string | null>(null);
+  const [isRoomLoading, setIsRoomLoading] = useState(false);
   const socketReady = useRef(false);
 
   /**
@@ -188,16 +196,77 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     setGameOver(false);
     setTicket(null);
     setError(null);
+    setRoomCode(null);
   }, [matchId]);
+
+  // ── Room Actions (connect to backend when ready) ───────────────────────
+
+  const goToRoom = useCallback(() => {
+    setScreen("room");
+  }, []);
+
+  const createRoom = useCallback(async () => {
+    setIsRoomLoading(true);
+    setError(null);
+    try {
+      await nakama.authenticate();
+      await nakama.connectSocket();
+      if (!socketReady.current) {
+        setupSocket();
+        socketReady.current = true;
+      }
+      const { matchId: mid, roomCode: code } = await nakama.createPrivateRoom();
+      // Creator must join the match on the socket to receive STATE_UPDATE
+      // when the opponent connects and the game begins.
+      await nakama.joinMatch(mid);
+      setMatchId(mid);
+      setRoomCode(code);
+      setBoard(Array(9).fill(null));
+      setCurrentTurn("X");
+      setWinner(null);
+      setGameOver(false);
+      // Stay on "room" screen — code is shown while waiting for opponent.
+      // STATE_UPDATE will fire when both players are present → setScreen("game")
+    } catch (e: any) {
+      setError(e?.message || "Failed to create room.");
+    } finally {
+      setIsRoomLoading(false);
+    }
+  }, [setupSocket]);
+
+  const joinRoom = useCallback(async (code: string) => {
+    setIsRoomLoading(true);
+    setError(null);
+    try {
+      await nakama.authenticate();
+      await nakama.connectSocket();
+      if (!socketReady.current) {
+        setupSocket();
+        socketReady.current = true;
+      }
+      const mid = await nakama.joinPrivateRoom(code);
+      setMatchId(mid);
+      setBoard(Array(9).fill(null));
+      setCurrentTurn("X");
+      setWinner(null);
+      setGameOver(false);
+      setError(null);
+      // STATE_UPDATE from the server will set playerMark and transition to "game"
+    } catch (e: any) {
+      setError(e?.message || "Room not found. Check the code and try again.");
+    } finally {
+      setIsRoomLoading(false);
+    }
+  }, [setupSocket]);
 
   // Build state object for consumers
   const state: AppState = {
     screen, matchId, playerMark, opponentName,
-    board, currentTurn, winner, gameOver, ticket, error,
+    board, currentTurn, winner, gameOver, ticket, error, roomCode,
   };
 
   return (
-    <GameContext.Provider value={{ state, play, cancelSearch, makeMove, reset }}>
+    <GameContext.Provider value={{ state, play, cancelSearch, makeMove, reset, goToRoom, createRoom, joinRoom, isRoomLoading }}>
       {children}
     </GameContext.Provider>
   );

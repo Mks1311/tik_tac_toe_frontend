@@ -91,6 +91,80 @@
   line-height: 1.5;
 }
 
+/* ── Mode buttons (Play + Play with Friend) ─── */
+
+.modeButtons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  max-width: 340px;
+}
+
+.roomBtn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.roomBtn:hover {
+  background: rgba(124, 92, 252, 0.08);
+  border-color: rgba(124, 92, 252, 0.22);
+  box-shadow: 0 4px 24px rgba(124, 92, 252, 0.1);
+}
+
+.roomBtnIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, rgba(124, 92, 252, 0.15), rgba(56, 189, 248, 0.08));
+  border: 1px solid rgba(124, 92, 252, 0.18);
+  color: var(--accent-light);
+  flex-shrink: 0;
+}
+
+.roomBtnLabel {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.roomBtnSub {
+  display: block;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.roomBtnArrow {
+  margin-left: auto;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  transition: color 0.2s, transform 0.2s;
+}
+
+.roomBtn:hover .roomBtnArrow {
+  color: var(--accent-light);
+  transform: translateX(3px);
+}
+
 /* ── Features ─── */
 
 .features {
