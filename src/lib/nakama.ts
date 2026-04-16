@@ -21,9 +21,9 @@ export const OpCode = {
 
 const client = new Client(
   process.env.NEXT_PUBLIC_NAKAMA_KEY || "defaultkey",
-  process.env.NEXT_PUBLIC_NAKAMA_HOST || "127.0.0.1",
-  process.env.NEXT_PUBLIC_NAKAMA_PORT || "7350",
-  process.env.NEXT_PUBLIC_NAKAMA_SSL === "true",
+  process.env.NEXT_PUBLIC_NAKAMA_HOST || "tic-tac-toe-nakama-backend.onrender.com",
+  process.env.NEXT_PUBLIC_NAKAMA_PORT || "",
+  true,
 );
 
 let session: Session | null = null;
@@ -53,7 +53,7 @@ export async function authenticate(): Promise<Session> {
 export async function connectSocket(): Promise<Socket> {
   if (socket) return socket;
   const sess = await authenticate();
-  socket = client.createSocket(process.env.NEXT_PUBLIC_NAKAMA_SSL === "true", false);
+  socket = client.createSocket(true, false);
   await socket.connect(sess, false);
   return socket;
 }
