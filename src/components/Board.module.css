@@ -1,0 +1,115 @@
+.board {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  width: min(400px, 85vw);
+  height: min(400px, 85vw);
+  gap: 0;
+}
+
+/* ── Grid lines ─── */
+
+.gridLines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.lineV1, .lineV2, .lineH1, .lineH2 {
+  position: absolute;
+  background: var(--border-active);
+  border-radius: 2px;
+}
+
+.lineV1, .lineV2 {
+  width: 2px;
+  top: 4%;
+  bottom: 4%;
+}
+
+.lineV1 { left: calc(100% / 3); }
+.lineV2 { left: calc(200% / 3); }
+
+.lineH1, .lineH2 {
+  height: 2px;
+  left: 4%;
+  right: 4%;
+}
+
+.lineH1 { top: calc(100% / 3); }
+.lineH2 { top: calc(200% / 3); }
+
+/* ── Cells ─── */
+
+.cell {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: default;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s ease;
+}
+
+.cell.clickable {
+  cursor: pointer;
+}
+
+.cell.clickable:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cell.winCell {
+  background: rgba(124, 92, 252, 0.06);
+}
+
+/* ── Marks ─── */
+
+.mark {
+  width: 60%;
+  height: 60%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.xSvg, .oSvg {
+  width: 100%;
+  height: 100%;
+}
+
+.glowX {
+  filter: drop-shadow(0 0 12px var(--x-glow));
+}
+
+.glowO {
+  filter: drop-shadow(0 0 12px var(--o-glow));
+}
+
+/* ── Hover hint ─── */
+
+.hint {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.hint svg {
+  width: 36%;
+  height: 36%;
+}
+
+.cell.clickable:hover .hint {
+  opacity: 0.2;
+}

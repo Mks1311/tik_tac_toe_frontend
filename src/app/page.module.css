@@ -1,0 +1,145 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Page Styles
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.main {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: 24px;
+  overflow: hidden;
+}
+
+/* ── Decorative orbs ─── */
+
+.bgOrb1, .bgOrb2, .bgOrb3 {
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(100px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.bgOrb1 {
+  width: 600px;
+  height: 600px;
+  top: -200px;
+  right: -150px;
+  background: radial-gradient(circle, rgba(124, 92, 252, 0.08) 0%, transparent 70%);
+  animation: float 12s ease-in-out infinite;
+}
+
+.bgOrb2 {
+  width: 500px;
+  height: 500px;
+  bottom: -200px;
+  left: -100px;
+  background: radial-gradient(circle, rgba(244, 114, 182, 0.06) 0%, transparent 70%);
+  animation: float 15s ease-in-out infinite reverse;
+}
+
+.bgOrb3 {
+  width: 400px;
+  height: 400px;
+  top: 40%;
+  left: 60%;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.05) 0%, transparent 70%);
+  animation: float 10s ease-in-out infinite 3s;
+}
+
+/* ── Home Screen ─── */
+
+.homeScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+  text-align: center;
+}
+
+.heroText {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  max-width: 520px;
+}
+
+.heading {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.headingGradient {
+  background: linear-gradient(135deg, var(--accent-light) 0%, var(--o-color) 60%, var(--x-color) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.tagline {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+/* ── Features ─── */
+
+.features {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: var(--radius-full);
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  user-select: none;
+}
+
+.featureIcon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* ── Game Screen ─── */
+
+.gameScreen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+.turnBar {
+  text-align: center;
+}
+
+.turnText {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.turnText strong {
+  color: var(--accent-light);
+  font-weight: 700;
+}
