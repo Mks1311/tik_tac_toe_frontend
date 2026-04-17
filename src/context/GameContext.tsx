@@ -49,6 +49,7 @@ interface GameContextValue {
   createRoom: () => Promise<void>;
   joinRoom: (roomCode: string) => Promise<void>;
   isRoomLoading: boolean;
+  isPlayLoading: boolean;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -68,6 +69,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [roomCode, setRoomCode] = useState<string | null>(null);
   const [isRoomLoading, setIsRoomLoading] = useState(false);
+  const [isPlayLoading, setIsPlayLoading] = useState(false);
   const socketReady = useRef(false);
 
   /**
@@ -131,44 +133,52 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   // ── Actions ──────────────────────────────────────────────────────────────
 
   const play = useCallback(async () => {
-    await nakama.authenticate();
-    await nakama.connectSocket();
+    setIsPlayLoading(true);
+    setError(null);
+    try {
+      await nakama.authenticate();
+      await nakama.connectSocket();
 
-    if (!socketReady.current) {
-      setupSocket();
-      socketReady.current = true;
-    }
-
-    const socket = nakama.getSocket()!;
-
-    // When matchmaker finds an opponent, join the match
-    socket.onmatchmakermatched = async (matched) => {
-      console.log('matched',matched)
-      let match;
-      if (matched.match_id) {
-        match = await nakama.joinMatch(matched.match_id);
-      } else {
-        return;
+      if (!socketReady.current) {
+        setupSocket();
+        socketReady.current = true;
       }
 
-      const userId = nakama.getUserId();
-      const opponent = (match.presences || []).find((p: any) => p.user_id !== userId);
+      const socket = nakama.getSocket()!;
 
-      setMatchId(match.match_id);
-      setPlayerMark(null); // Server corrects this via STATE_UPDATE
-      setOpponentName(opponent?.username || "Opponent");
-      setBoard(Array(9).fill(null));
-      setCurrentTurn("X");
-      setWinner(null);
-      setGameOver(false);
+      // When matchmaker finds an opponent, join the match
+      socket.onmatchmakermatched = async (matched) => {
+        console.log('matched',matched)
+        let match;
+        if (matched.match_id) {
+          match = await nakama.joinMatch(matched.match_id);
+        } else {
+          return;
+        }
+
+        const userId = nakama.getUserId();
+        const opponent = (match.presences || []).find((p: any) => p.user_id !== userId);
+
+        setMatchId(match.match_id);
+        setPlayerMark(null); // Server corrects this via STATE_UPDATE
+        setOpponentName(opponent?.username || "Opponent");
+        setBoard(Array(9).fill(null));
+        setCurrentTurn("X");
+        setWinner(null);
+        setGameOver(false);
+        setError(null);
+        setScreen("game");
+      };
+
+      const t = await nakama.startMatchmaking();
+      setTicket(t);
+      setScreen("searching");
       setError(null);
-      setScreen("game");
-    };
-
-    const t = await nakama.startMatchmaking();
-    setTicket(t);
-    setScreen("searching");
-    setError(null);
+    } catch (e: any) {
+      setError(e?.message || "Failed to connect. Try again.");
+    } finally {
+      setIsPlayLoading(false);
+    }
   }, [setupSocket]);
 
   const cancelSearch = useCallback(async () => {
@@ -266,7 +276,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <GameContext.Provider value={{ state, play, cancelSearch, makeMove, reset, goToRoom, createRoom, joinRoom, isRoomLoading }}>
+    <GameContext.Provider value={{ state, play, cancelSearch, makeMove, reset, goToRoom, createRoom, joinRoom, isRoomLoading, isPlayLoading }}>
       {children}
     </GameContext.Provider>
   );

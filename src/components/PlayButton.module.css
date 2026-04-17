@@ -86,3 +86,30 @@
   color: white;
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
+
+/* ── Loading state ─── */
+
+.wrapperLoading {
+  cursor: not-allowed;
+}
+
+.wrapperLoading .inner {
+  background: linear-gradient(145deg, #5a3ec8, #4a2eae);
+  box-shadow:
+    0 0 30px rgba(124, 92, 252, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.btnSpinner {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: btn-spin 0.8s linear infinite;
+}
+
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}

@@ -4,6 +4,9 @@
  * Handles authentication, socket connection, matchmaking, and
  * sending match data. Event handlers (onmatchdata, onmatchmakermatched)
  * are set directly on the socket by the consumer.
+ *
+ * healthcheck() — fires a GET to /healthcheck on mount so Render
+ * has time to spin the server back up before the user clicks anything.
  */
 
 import { Client, Session, Socket } from "@heroiclabs/nakama-js";
@@ -28,6 +31,23 @@ const client = new Client(
 
 let session: Session | null = null;
 let socket: Socket | null = null;
+
+// ── Healthcheck ──────────────────────────────────────────────────────────────
+
+/**
+ * Silently pings /healthcheck to wake up the Render backend.
+ * Should be called once when the page mounts.
+ * Errors are intentionally swallowed — this is a best-effort warm-up.
+ */
+export async function healthcheck(): Promise<void> {
+  const host = process.env.NEXT_PUBLIC_NAKAMA_HOST || "tic-tac-toe-nakama-backend.onrender.com";
+  const url = `https://${host}/healthcheck`;
+  try {
+    await fetch(url, { method: "GET", mode: "no-cors" });
+  } catch {
+    //server may still be waking up
+  }
+}
  
 // ── Helpers ──────────────────────────────────────────────────────────────────
 

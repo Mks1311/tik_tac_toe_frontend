@@ -10,10 +10,28 @@ import Board from "@/components/Board";
 import ResultModal from "@/components/ResultModal";
 import RoomLobby from "@/components/RoomLobby";
 import styles from "./page.module.css";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { healthcheck } from "@/lib/nakama";
 
 export default function Home() {
-  const { state, play, cancelSearch, makeMove, reset, goToRoom, createRoom, joinRoom, isRoomLoading } = useGame();
+  const { state, play, cancelSearch, makeMove, reset, goToRoom, createRoom, joinRoom, isRoomLoading, isPlayLoading } = useGame();
+
+  // Fire-and-forget: wake up the Render backend as soon as the page loads.
+  // By the time the user clicks a button, the server has had time to spin up.
+  useEffect(() => {
+    healthcheck();
+  }, []);
+
+  // Show a slow-load warning if the backend is still pending after 5 s
+  const [showSlowLoad, setShowSlowLoad] = useState(false);
+  useEffect(() => {
+    if (!isPlayLoading) {
+      setShowSlowLoad(false);
+      return;
+    }
+    const t = setTimeout(() => setShowSlowLoad(true), 5000);
+    return () => clearTimeout(t);
+  }, [isPlayLoading]);
 
   return (
     <main className={styles.main}>
@@ -56,7 +74,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.25 }}
             >
-              <PlayButton onClick={play} />
+              <PlayButton onClick={play} isLoading={isPlayLoading} />
 
               <motion.button
                 id="private-room-btn"
@@ -179,6 +197,57 @@ export default function Home() {
             isLoading={isRoomLoading}
             roomError={state.error}
           />
+        )}
+      </AnimatePresence>
+      {/* ── Play Loader Overlay ─── */}
+      <AnimatePresence>
+        {isPlayLoading && (
+          <motion.div
+            key="play-loader"
+            className={styles.loaderOverlay}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.div
+              className={styles.loaderCard}
+              initial={{ opacity: 0, y: 24, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.96 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div className={styles.loaderSpinnerWrap}>
+                <div className={styles.loaderRing} />
+                <div className={styles.loaderRing2} />
+              </div>
+              <p className={styles.loaderTitle}>Connecting to server…</p>
+              <AnimatePresence>
+                {showSlowLoad && (
+                  <motion.div
+                    className={styles.slowLoadMsg}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.4 }}
+                  >
+                    <span className={styles.slowLoadIcon}>⏳</span>
+                    <p>
+                      The backend is hosted on Render and may have spun down.
+                      Hang tight while it starts back up — or do a{" "}
+                      <button
+                        className={styles.reloadBtn}
+                        onClick={() => window.location.reload()}
+                      >
+                        hard reload
+                      </button>
+                      {" "}and try again.
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </main>
