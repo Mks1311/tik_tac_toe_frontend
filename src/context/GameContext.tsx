@@ -172,12 +172,11 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
       const t = await nakama.startMatchmaking();
       setTicket(t);
+      setIsPlayLoading(false);
       setScreen("searching");
       setError(null);
     } catch (e: any) {
       setError(e?.message || "Failed to connect. Try again.");
-    } finally {
-      setIsPlayLoading(false);
     }
   }, [setupSocket]);
 
@@ -218,6 +217,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const createRoom = useCallback(async () => {
     setIsRoomLoading(true);
     setError(null);
+    setIsPlayLoading(true);
     try {
       await nakama.authenticate();
       await nakama.connectSocket();
@@ -237,6 +237,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       setGameOver(false);
       // Stay on "room" screen — code is shown while waiting for opponent.
       // STATE_UPDATE will fire when both players are present → setScreen("game")
+      setIsPlayLoading(false);
     } catch (e: any) {
       setError(e?.message || "Failed to create room.");
     } finally {
@@ -247,6 +248,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const joinRoom = useCallback(async (code: string) => {
     setIsRoomLoading(true);
     setError(null);
+    setIsPlayLoading(true);
     try {
       await nakama.authenticate();
       await nakama.connectSocket();
@@ -262,6 +264,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       setGameOver(false);
       setError(null);
       // STATE_UPDATE from the server will set playerMark and transition to "game"
+      setIsPlayLoading(false);
     } catch (e: any) {
       setError(e?.message || "Room not found. Check the code and try again.");
     } finally {
